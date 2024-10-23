@@ -27,13 +27,13 @@ end
 --> Different Debug Levels
 local function debug_print(Message, RequiredState)
     if RequiredState == DebugState then
-        print(Message);
+        print("[DEBUG] ".. Message);
     end
 end
 
 --> Internal errors that cause the program to exit, but not officially
 local function fake_error(Message, ExitStatus)
-    print(Colours.Red.. Message ..Colours.Reset);
+    print(Colours.Red.. "[EXIT] " .. Message ..Colours.Reset);
     os.exit(ExitStatus);
 end
 
@@ -72,7 +72,7 @@ local function remove_path(Location)
                 return;
             end
         end
-        fake_error("[EXIT] Unable to remove path: ".. Location, -2);
+        fake_error("Unable to remove path: ".. Location, -2);
     end
 end
 
@@ -89,7 +89,7 @@ local function create_path(Location)
             return;
         end
     end
-    fake_error("[EXIT] Unable to create path at: ".. Location, -2);
+    fake_error("Unable to create path at: ".. Location, -2);
 end
 
 --<> Manage Cache
@@ -115,7 +115,7 @@ if CacheFileExists == nil then
 
     --> Create the file if it doesn't exist
     if not os.execute(Configuration.Settings.SuperuserCommand.. "touch ".. Configuration.Settings.CachePath ..CacheFileName) then
-        fake_error("[EXIT] Failed to create Cache File at: ".. Configuration.Settings.CachePath, -1);
+        fake_error("Failed to create Cache File at: ".. Configuration.Settings.CachePath, -1);
     end
 end
 
@@ -160,16 +160,16 @@ if CacheFileContents ~= nil then
                 --> Check if the symlink points to the intended source directory
                 local Handle = io.popen(Configuration.Settings.SuperuserCommand .."readlink ".. SymlinkPath);
                 if Handle:read() ~= SourcePath then
-                    debug_print("[DEBUG] Removal Reason 1 (Symlink Does not point to intended directory)", DebugOptions.REMOVAL);
+                    debug_print("Removal Reason 1 (Symlink Does not point to intended directory)", DebugOptions.REMOVAL);
                     remove_path(SymlinkPath);
                 end 
                 Handle:close();
             else
-                debug_print("[DEBUG] Removal Reason 2 (Path is not a symlink)", DebugOptions.REMOVAL);
+                debug_print("Removal Reason 2 (Path is not a symlink)", DebugOptions.REMOVAL);
                 remove_path(SymlinkPath);
             end
         else
-            debug_print("[DEBUG] Removal Reason 3 (Symlink is no longer required)", DebugOptions.REMOVAL);
+            debug_print("Removal Reason 3 (Symlink is no longer required)", DebugOptions.REMOVAL);
             remove_path(SymlinkPath);
         end
     end
@@ -183,7 +183,7 @@ for SymlinkPath, SourcePath in pairs(Configuration.Symlinks) do
     if os.execute(Configuration.Settings.SuperuserCommand .."test -e ".. SymlinkPath) == nil then
         --> Ensure that source path exists
         if os.execute(Configuration.Settings.SuperuserCommand .."test -e ".. SourcePath) == nil then
-            fake_error("[EXIT] Source path does not exist: ".. SourcePath, -1);
+            fake_error("Source path does not exist: ".. SourcePath, -1);
         end
         --> Create the symlink
         local Confirmation = true;
@@ -193,7 +193,7 @@ for SymlinkPath, SourcePath in pairs(Configuration.Symlinks) do
         end
         if Confirmation then
             os.execute(Configuration.Settings.SuperuserCommand .."ln -s ".. SourcePath .. " ".. SymlinkPath);
-            print(Colours.Green .."Created Symlink, Source: ".. SourcePath .. ", Symlink File: ".. SymlinkPath ..Colours.Reset);
+            print(Colours.Green .."[LOG] Created Symlink, Source: ".. SourcePath .. ", Symlink File: ".. SymlinkPath ..Colours.Reset);
         end
     end
 
