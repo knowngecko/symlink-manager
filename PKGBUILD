@@ -2,8 +2,8 @@
 
 _pkgname="symlink-manager"
 pkgname="$_pkgname-git"
-pkgrel="1"
-pkgver="r1.44db75d"
+pkgrel=1
+pkgver=r1.36c2288
 pkgdesc="A way to manage your symlinks in lua"
 arch=("x86_64" "arm")
 url="https://github.com/knowngecko/symlink-manager.git"
@@ -25,5 +25,4 @@ package() {
     install -Dm755 ./wrapper.sh "$pkgdir/usr/bin/symlink-manager"
     mkdir -p "$pkgdir/usr/share/${_pkgname}"
     cp -rf ./* "$pkgdir/usr/share/${_pkgname}/"
-    echo ${pkgdir}
 }

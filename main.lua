@@ -2,6 +2,8 @@
 local CacheFileName = "symlinks.cache";
 if arg[1] ~= nil then package.path = package.path .. ";" .. arg[1] .. "/?.lua" end local Configuration = require("symlink");
 if Configuration.Settings.SuperuserCommand ~= "" then Configuration.Settings.SuperuserCommand = Configuration.Settings.SuperuserCommand.. " "; end
+local DebugOptions = { NONE=0, REMOVAL=1 };
+local DebugState = DebugOptions.NONE;
 
 local Colours = {
     Reset = "\27[0m",
@@ -12,7 +14,7 @@ local Colours = {
     Magenta = "\27[35m",
     Cyan = "\27[36m",
     White = "\27[37m",
-}
+};
 
 --<> Activation Message
 if Configuration.Settings.RandomActivationMessage == true and Configuration.Settings.Licensed == false then
@@ -22,6 +24,13 @@ if Configuration.Settings.RandomActivationMessage == true and Configuration.Sett
 end
 
 --<> Functions
+--> Different Debug Levels
+local function debug_print(Message, RequiredState)
+    if RequiredState == DebugState then
+        print(Message);
+    end
+end
+
 --> Internal errors that cause the program to exit, but not officially
 local function fake_error(Message, ExitStatus)
     print(Colours.Red.. Message ..Colours.Reset);
@@ -93,7 +102,7 @@ end
 --> Test if the path exists
 local CacheDirectoryExists = os.execute(Configuration.Settings.SuperuserCommand .."test -d ".. Configuration.Settings.CachePath);
 if CacheDirectoryExists == nil then
-    print("Cache Directory doesn't exist, generating a new one at: ".. Configuration.Settings.CachePath ..CacheFileName);
+    print("[LOG] (PLEASE CHECK THE DIRECTORY IS NOT DEFAULT) Cache Directory doesn't exist, generating a new one at: ".. Configuration.Settings.CachePath ..CacheFileName);
 
     --> Create the directory if it doesn't exist
     create_path(Configuration.Settings.CachePath);
@@ -102,7 +111,7 @@ end
 --> Test if the File exists
 local CacheFileExists = os.execute(Configuration.Settings.SuperuserCommand .."test -f ".. Configuration.Settings.CachePath ..CacheFileName);
 if CacheFileExists == nil then
-    print("Cache File doesn't exist, generating a new one at: ".. Configuration.Settings.CachePath ..CacheFileName);
+    print("[LOG] Cache File doesn't exist, generating a new one at: ".. Configuration.Settings.CachePath ..CacheFileName);
 
     --> Create the file if it doesn't exist
     if not os.execute(Configuration.Settings.SuperuserCommand.. "touch ".. Configuration.Settings.CachePath ..CacheFileName) then
@@ -110,6 +119,7 @@ if CacheFileExists == nil then
     end
 end
 
+print("[LOG] Reading Cache File!")
 local Handle = io.popen(Configuration.Settings.SuperuserCommand .."cat ".. Configuration.Settings.CachePath ..CacheFileName);
 local CacheFileContents = Handle:read(); Handle:close();
 
@@ -136,56 +146,59 @@ if CacheFileContents ~= nil then
     --> Split each pair into its individual directory
     for Index, Value in pairs(Splits) do
         local NullPosition = Value:find("\0");
-        local SegmentOne = Value:sub(1, NullPosition-1);
-        local SegmentTwo = Value:sub(NullPosition+1, -1);
-        --print("SegmentOne: ".. SegmentOne .." SegmentTwo: ".. SegmentTwo);
+        local SymlinkPath = Value:sub(1, NullPosition-1);
+        local SourcePath = Value:sub(NullPosition+1, -1);
+        --print("SymlinkPath: ".. SymlinkPath .." SourcePath: ".. SourcePath);
 
         --> Remove only if we no longer want the symlink
-        if Configuration.Symlinks[SegmentOne] ~= nil then
+        if Configuration.Symlinks[SymlinkPath] ~= nil then
             --> Expand variables
-            SegmentOne = real_path(SegmentOne);
-            SegmentTwo = real_path(SegmentTwo);
+            SymlinkPath = real_path(SymlinkPath);
+            SourcePath = real_path(SourcePath);
             --> Check if the path is a symlink
-            if os.execute(Configuration.Settings.SuperuserCommand .."test -L " ..SegmentTwo) then
+            if os.execute(Configuration.Settings.SuperuserCommand .."test -L " ..SymlinkPath) then
                 --> Check if the symlink points to the intended source directory
-                local Handle = io.popen(Configuration.Settings.SuperuserCommand .."readlink ".. SegmentTwo);
-                if Handle:read() ~= SegmentOne then
-                    remove_path(SegmentTwo);
+                local Handle = io.popen(Configuration.Settings.SuperuserCommand .."readlink ".. SymlinkPath);
+                if Handle:read() ~= SourcePath then
+                    debug_print("[DEBUG] Removal Reason 1 (Symlink Does not point to intended directory)", DebugOptions.REMOVAL);
+                    remove_path(SymlinkPath);
                 end 
                 Handle:close();
             else
-                remove_path(SegmentTwo);
+                debug_print("[DEBUG] Removal Reason 2 (Path is not a symlink)", DebugOptions.REMOVAL);
+                remove_path(SymlinkPath);
             end
         else
-            remove_path(SegmentTwo);
+            debug_print("[DEBUG] Removal Reason 3 (Symlink is no longer required)", DebugOptions.REMOVAL);
+            remove_path(SymlinkPath);
         end
     end
 end
 
 --<> Create Symlinks and update cache
---> SegmentOne is Source Dir, SegmentTwo is link dir
+--> SymlinkPath is Link Dir, SourcePath is Source dir
 local NewCache = "";
-for SegmentOne, SegmentTwo in pairs(Configuration.Symlinks) do
+for SymlinkPath, SourcePath in pairs(Configuration.Symlinks) do
     --> Only create path if it doesn't exist
-    if os.execute(Configuration.Settings.SuperuserCommand .."test -e ".. SegmentTwo) == nil then
+    if os.execute(Configuration.Settings.SuperuserCommand .."test -e ".. SymlinkPath) == nil then
         --> Ensure that source path exists
-        if os.execute(Configuration.Settings.SuperuserCommand .."test -e ".. SegmentOne) == nil then
-            fake_error("[EXIT] Source path does not exist: ".. SegmentOne, -1);
+        if os.execute(Configuration.Settings.SuperuserCommand .."test -e ".. SourcePath) == nil then
+            fake_error("[EXIT] Source path does not exist: ".. SourcePath, -1);
         end
         --> Create the symlink
         local Confirmation = true;
         if Configuration.Settings.AddSymlinkConfirmation then
-            io.write(Colours.Yellow.. "[INPUT REQUIRED] Are you sure you would like a symlink from Source: ".. SegmentOne.. " Symlink File: ".. SegmentTwo .." (y/n)".. Colours.Reset);
+            io.write(Colours.Yellow.. "[INPUT REQUIRED] Are you sure you would like a symlink from Source: ".. SourcePath.. " Symlink File: ".. SymlinkPath .." (y/n)".. Colours.Reset);
             Confirmation = ensure_confirmation();
         end
         if Confirmation then
-            os.execute(Configuration.Settings.SuperuserCommand .."ln -s ".. SegmentOne .. " ".. SegmentTwo);
-            print(Colours.Green .."Created Symlink, Source: ".. SegmentOne .. ", Symlink File: ".. SegmentTwo ..Colours.Reset);
+            os.execute(Configuration.Settings.SuperuserCommand .."ln -s ".. SourcePath .. " ".. SymlinkPath);
+            print(Colours.Green .."Created Symlink, Source: ".. SourcePath .. ", Symlink File: ".. SymlinkPath ..Colours.Reset);
         end
     end
 
     --> Update string to write to cache file
-    NewCache = NewCache.. SegmentOne.."\\0"..SegmentTwo.."\\0";
+    NewCache = NewCache.. SymlinkPath.."\\0"..SourcePath.."\\0";
 end
 
 --> Write to cache file

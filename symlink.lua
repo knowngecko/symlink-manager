@@ -1,6 +1,6 @@
 local Configuration = {
     Symlinks = {
-        -- Source File            Symlink File
+        -- Symlink File            Source File
         ["/home/user/folder1"] = "/home/user/folder2",
     },
 
