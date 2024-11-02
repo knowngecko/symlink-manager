@@ -28,13 +28,13 @@ The key is link file directory, so the link file will be created at /home/user/f
         Licensed = false;
     }
 ```
-AddSymlinkConfirmation: Will ask you to allow the creation of the symlink file at the specified directory (bool: true / false)
-AddPathConfirmation:  Will ask you to allow the creation of the path at the specified directory (bool: true / false)
-RemovePathConfirmation:  Will ask you to remove the creation of the path at the specified directory (bool: true / false)
-CachePath: To know where symlink-manager previously created symlinks, a cache file must be used, this specifies the directory. **Please change "user" to your user!** (string: eg. /home/knowngecko/.config/)
-SuperuserCommand: Prepends the command to the bash commands that the program runs (string: eg. "sudo", "doas")
-RandomActivationMessage: Enables or disables the random message upon running the program to purchase a license (bool: true / false)
-Licensed: Bool you set to mark the program as licensed, disables activation message if true (bool: true / false) - Same functionality-wise to RandomActivationMessage
+- AddSymlinkConfirmation: Will ask you to allow the creation of the symlink file at the specified directory (bool: true / false)
+- AddPathConfirmation:  Will ask you to allow the creation of the path at the specified directory (bool: true / false)
+- RemovePathConfirmation:  Will ask you to remove the creation of the path at the specified directory (bool: true / false)
+- CachePath: To know where symlink-manager previously created symlinks, a cache file must be used, this specifies the directory. **Please change "user" to your user!** (string: eg. /home/knowngecko/.config/)
+- SuperuserCommand: Prepends the command to the bash commands that the program runs (string: eg. "sudo", "doas")
+- RandomActivationMessage: Enables or disables the random message upon running the program to purchase a license (bool: true / false)
+- Licensed: Bool you set to mark the program as licensed, disables activation message if true (bool: true / false) - Same functionality-wise to RandomActivationMessage
 
 ```lua
 }
