@@ -6,7 +6,7 @@ By KnownGecko
 
 
 ## Usage
-To run the program, please run symlink-manager /the/directory/to/the/file/symlink.lua
+To run the program, please run symlink-manager /the/directory/to/the/file/theconfigurationfile.lua. If no argument is provided, it will be assumed that there is a symlink.lua file in the directory you are running the program from.
 
 ```lua
 local Configuration = {
@@ -41,12 +41,12 @@ Licensed: Bool you set to mark the program as licensed, disables activation mess
 
 return Configuration
 ```
-Note that the table names cannot be changed, they must be named this way. This example file can be found in symlink.lua.
+Note that the table names cannot be changed, they must be named this way. This example file can be found in example.lua.
 
 ## Packages
 AUR (Official)
 
 ##  Licensing
 Symlink-Manager utilises a source-first license. If this software meets your needs, please purchase a license on [Ko-Fi](https://ko-fi.com/s/f7d3444a62) (Cost: £3).
-Please note that there is no locked functionality behind the license, as mentionedabove.
+Please note that there is no locked functionality behind the license, as mentioned above.
 
