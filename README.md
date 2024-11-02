@@ -5,6 +5,9 @@
 By KnownGecko
 
 
+## Introduction
+Symlink manager allows you to declaratively manage your symlinks through a simple lua configuration file!
+
 ## Usage
 To run the program, please run symlink-manager /the/directory/to/the/file/theconfigurationfile.lua. If no argument is provided, it will be assumed that there is a symlink.lua file in the directory you are running the program from.
 
