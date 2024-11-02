@@ -1,7 +1,19 @@
 --<> Global Variables
 local CacheFileName = "symlinks.cache";
-if arg[1] ~= nil then package.path = package.path .. ";" .. arg[1] .. "/?.lua" end local Configuration = require("symlink");
+local RelativeScriptPath = debug.getinfo(1, "S").source:sub(2):match("(.*/)") or "./"
+package.path = package.path .. ";" ..  RelativeScriptPath .. "?.lua";
+
+--> Decipher argument path
+local FileName = "symlink";
+if arg[1] ~= nil then
+    FileName = arg[1]:match("([^/]+)$"):gsub("%.lua$", "")
+    local Directory = arg[1]:match("^(.*)/").. "/"
+    package.path = package.path .. ";" .. Directory .. "/?.lua"
+end
+
+local Configuration = require(FileName);
 if Configuration.Settings.SuperuserCommand ~= "" then Configuration.Settings.SuperuserCommand = Configuration.Settings.SuperuserCommand.. " "; end
+
 local DebugOptions = { NONE=0, REMOVAL=1 };
 local DebugState = DebugOptions.NONE;
 
